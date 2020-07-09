@@ -1,0 +1,324 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Read_coco_data_and_save.ipynb",
+      "provenance": [],
+      "authorship_tag": "ABX9TyOTcFPkYSxdyY0TVBgDlqEe",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Mithilesh0079/Data-Structures-and-Algorithms-Algorithmic-Toolbox-week2/blob/master/Read_coco_data_and_save.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Nk_D59MTTQ2o",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "%matplotlib inline\n",
+        "from pycocotools.coco import COCO\n",
+        "import numpy as np\n",
+        "import skimage.io as io\n",
+        "import matplotlib.pyplot as plt\n",
+        "import pylab\n",
+        "pylab.rcParams['figure.figsize'] = (8.0, 10.0)\n",
+        "import cv2 \n",
+        "import os\n",
+        "print(\"Numpy Version is \", np.__version__)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "vQKH9M66TvoY",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/gdrive')"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "jARREYzZTvmF",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "annFile='gdrive/My Drive/COCO/instances_train2017.json'\n",
+        "coco=COCO(annFile)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "x6lkCtaxTvkc",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "cats = coco.loadCats(coco.getCatIds())\n",
+        "nms=[cat['name'] for cat in cats]\n",
+        "cat_temp= nms\n",
+        "print('COCO categories: \\n{}\\n'.format(' '.join(nms)))\n",
+        "\n",
+        "nms = set([cat['supercategory'] for cat in cats])\n",
+        "print('COCO supercategories: \\n{}'.format(' '.join(nms)))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "gQqA3oxHTvil",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "#bear 1, elephant 2, giraffe 3, zebra 4, other 5\n",
+        "other_cat=['bird','cat','dog','horse','sheep','cow','kite','wine glass','cup','banana','apple','chair','laptop','mouse','remote', 'keyboard', 'cell phone',]"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "rQy7UuACTveV",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "cat1to4= {'elephant', 'bear', 'giraffe', 'zebra'}"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "jAc4g9t9Tva1",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "animal= []\n",
+        "target= []\n",
+        "bbox=   []\n",
+        "for cat in cat1to4:\n",
+        "  catIds = coco.getCatIds(catNms=cat);\n",
+        "  imgIds = coco.getImgIds(catIds=catIds );\n",
+        "  for i in range(0,min(len(imgIds),1100)):\n",
+        "      img = coco.loadImgs(imgIds[i])[0]\n",
+        "      I = io.imread(img['coco_url'])\n",
+        "      I1= cv2.resize(I,(224,224),interpolation = cv2.INTER_NEAREST)\n",
+        "      annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIds, iscrowd=None)\n",
+        "      anns = coco.loadAnns(annIds)\n",
+        "      temp=[]\n",
+        "      for i in range(len(anns)):\n",
+        "        x_top_to_w= anns[i]['bbox'][0]/anns[i]['bbox'][2]\n",
+        "        y_top_to_h= anns[i]['bbox'][1]/anns[i]['bbox'][3]\n",
+        "        w_new= anns[i]['bbox'][2]*224/I.shape[1]\n",
+        "        h_new= anns[i]['bbox'][3]*224/I.shape[0]\n",
+        "        x_new= x_top_to_w*w_new\n",
+        "        y_new= y_top_to_h*h_new\n",
+        "        box_temp= [x_new, y_new, w_new, h_new]\n",
+        "        temp.append(box_temp)\n",
+        "      bbox.append(temp)\n",
+        "      animal.append(I1)\n",
+        "      target.append(cat)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "j8ukL_bbTvYj",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import random\n",
+        "n= random.randint(0,10)\n",
+        "print(bbox[n])\n",
+        "plt.imshow(animal[n])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "C5VXluuDTvWf",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "for i in range(1100):\n",
+        "  n= random.randint(0,len(other_cat)-1)\n",
+        "  cat= other_cat[n]\n",
+        "  catIds = coco.getCatIds(catNms=cat);\n",
+        "  imgIds = coco.getImgIds(catIds=catIds );\n",
+        "  p= random.randint(0,min(len(imgIds),500))\n",
+        "  img = coco.loadImgs(imgIds[p])[0]\n",
+        "  I = io.imread(img['coco_url'])\n",
+        "  I1= cv2.resize(I,(224,224),interpolation = cv2.INTER_NEAREST)\n",
+        "  annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIds, iscrowd=None)\n",
+        "  anns = coco.loadAnns(annIds)\n",
+        "  temp=[[0.0,0.0,0.0,0.0]]\n",
+        "  bbox.append(temp)\n",
+        "  animal.append(I1)\n",
+        "  target.append('other')"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "KYkGETV9TvT0",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "print(len(animal))\n",
+        "print(len(bbox))\n",
+        "print(len(target))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "HoPv8E9wTvPm",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "X=[]\n",
+        "Y= []\n",
+        "bbox1=[]\n",
+        "for i in range(len(target)):\n",
+        "  x= animal[i].shape\n",
+        "  s=0\n",
+        "  for j in x:\n",
+        "    s= s+j;\n",
+        "  if(s==451): #removing 2d images\n",
+        "    X.append(animal[i])\n",
+        "    Y.append(target[i])\n",
+        "    bbox1.append(bbox[i])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "SNLymLcmUVfY",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "print(len(X))\n",
+        "print(len(Y))\n",
+        "print(len(bbox1))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "2V04XlsQUq-1",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "imdata =np.array(X)\n",
+        "bbox= np.array(bbox1)\n",
+        "target= Y"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "_nL25mogUsez",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "y= np.zeros([len(target),5],dtype= int)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "QmwwpQ7AUvql",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "for i in range(len(target)):\n",
+        "  if target[i]=='elephant':\n",
+        "    y[i][1]= 1\n",
+        "  elif target[i]== 'bear':\n",
+        "    y[i][0]=1\n",
+        "  elif target[i]=='giraffe':\n",
+        "    y[i][2]= 1\n",
+        "  elif target[i]=='zebra':\n",
+        "    y[i][3]=1\n",
+        "  else:\n",
+        "    y[i][4]= 1"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "uksGMGSOUyNl",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "np.save('gdrive/My Drive/COCO/X_data_1100perclass.npy', imdata)\n",
+        "np.save('gdrive/My Drive/COCO/Y_data_1100perclass.npy',y)\n",
+        "np.save('gdrive/My Drive/COCO/bbox_1100perclass.npy', bbox)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
